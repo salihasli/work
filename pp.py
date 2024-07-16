@@ -1,12 +1,12 @@
 import streamlit as st
 
+# اليوزر والرمز الصحيح
+user = "admin"
+pas = "132"
+
 # تهيئة حالة تسجيل الدخول
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
-
-# تعريف اليوزر والرمز الصحيح
-user = "admin"
-pas = "132"
 
 # صفحة الدخول
 if not st.session_state.logged_in:
@@ -14,11 +14,11 @@ if not st.session_state.logged_in:
     qq = st.text_input("User Name")
     ww = st.text_input("Password", type="password")
     go = st.button("Login")
-    
+
     if go:
         if qq == user and ww == pas:
-            st.session_state.logged_in = True
-            st.success("Login successful")
+            st.session_state.logged_in = True  # تحديث حالة تسجيل الدخول
+            st.experimental_rerun()  # إعادة تحميل الصفحة
         else:
             st.error("Error: Incorrect user or password")
 
@@ -38,8 +38,6 @@ if st.session_state.logged_in:
         st.write("City:", city)
         st.write("Region:", region)
         st.write("More Information:", more)
-        
+
     if file:
         st.image(file, caption="Uploaded Image")
-
-    
