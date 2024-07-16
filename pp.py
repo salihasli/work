@@ -45,9 +45,9 @@ elif menu == "Customer Information":
 
 
 elif menu == "Another Section":
-    if st.session_state.is_authenticated:
     st.title("Another Section")
-    st.write("More content here.")
+    if st.session_state.is_authenticated:
+        st.write("More content here.")
     
 
 # تسجيل الخروج
