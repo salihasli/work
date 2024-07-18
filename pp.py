@@ -4,7 +4,7 @@ from streamlit_option_menu import option_menu
 import os
 
 # تعريف الكود السري للتحقق
-code = "your_secret_code"  # يجب تعيين كود السر الخاص بك هنا
+code = "صالح"  # يجب تعيين كود السر الخاص بك هنا
 
 # طلب كود التسجيل
 st.title("If you have a code, enter here:")
