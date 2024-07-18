@@ -1,9 +1,10 @@
 import streamlit as st
 import json
 from streamlit_option_menu import option_menu
+import os
 
 # تعريف الكود السري للتحقق
-code = "salih"  # يجب تعيين كود السر الخاص بك هنا
+code = "your_secret_code"  # يجب تعيين كود السر الخاص بك هنا
 
 # طلب كود التسجيل
 st.title("If you have a code, enter here:")
@@ -51,14 +52,32 @@ if is_authenticated:
         st.title("Profile Information")
         try:
             with open('data.json', 'r') as f:
-                all_data = json.load(f)
-                for data in all_data:
+                try:
+                    all_data = json.load(f)
+                except json.JSONDecodeError:
+                    all_data = []
+
+                # متغير لتحديد الإدخال الذي سيتم حذفه
+                delete_index = st.session_state.get('delete_index', -1)
+                if delete_index >= 0 and delete_index < len(all_data):
+                    del all_data[delete_index]
+                    with open('data.json', 'w') as f:
+                        json.dump(all_data, f)
+                    st.success(f"Entry {delete_index + 1} deleted successfully!")
+                    st.session_state.delete_index = -1
+                    st.experimental_rerun()
+
+                for i, data in enumerate(all_data):
                     st.write("Name:", data['hello'])
                     st.write("Phone Number:", data['phone'])
                     st.write("City:", data['city'])
                     st.write("Region:", data['region'])
                     st.write("More Information:", data['more'])
                     st.write("Number here:", data.get('number', 'No data'))
+
+                    if st.button(f"Delete Entry {i+1}", key=f"delete_button_{i}"):
+                        st.session_state.delete_index = i
+                        st.experimental_rerun()
                     st.write("---")
         except FileNotFoundError:
             st.error("No data found. Please enter customer information first.")
