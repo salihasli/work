@@ -4,15 +4,21 @@ import requests
 from streamlit_option_menu import option_menu
 import os
 
-# إخفاء زر GitHub
-hide_github_button_style = """
+# إخفاء زر GitHub وزر "Manage app"
+hide_buttons_style = """
     <style>
     .viewerBadge_container__1QSob { 
         display: none !important; 
     }
+    #MainMenu {
+        visibility: hidden;
+    }
+    footer {
+        visibility: hidden;
+    }
     </style>
 """
-st.markdown(hide_github_button_style, unsafe_allow_html=True)
+st.markdown(hide_buttons_style, unsafe_allow_html=True)
 
 # استخدم الرمز المميز المخزن في المتغير البيئي
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
