@@ -3,6 +3,16 @@ import json
 from streamlit_option_menu import option_menu
 import os
 
+# إخفاء زر GitHub
+hide_github_button_style = """
+    <style>
+    .viewerBadge_container__1QSob { 
+        display: none !important; 
+    }
+    </style>
+"""
+st.markdown(hide_github_button_style, unsafe_allow_html=True)
+
 # تعريف الكود السري للتحقق
 code = "صالح"  # يجب تعيين كود السر الخاص بك هنا
 
