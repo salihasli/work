@@ -4,7 +4,7 @@ import requests
 from streamlit_option_menu import option_menu
 import os
 
-# إخفاء زر GitHub وزر "Manage app"
+# إخفاء أزرار GitHub وزر "Manage app"
 hide_buttons_style = """
     <style>
     .viewerBadge_container__1QSob { 
@@ -15,6 +15,12 @@ hide_buttons_style = """
     }
     footer {
         visibility: hidden;
+    }
+    button[title="Manage app"] {
+        display: none !important;
+    }
+    .stActionButton { 
+        display: none !important; 
     }
     </style>
 """
