@@ -16,7 +16,7 @@ hide_buttons_style = """
     footer {
         visibility: hidden;
     }
-    button[title="Manage app"] {
+    button[data-testid="manage-app-button"] {
         display: none !important;
     }
     .stActionButton { 
