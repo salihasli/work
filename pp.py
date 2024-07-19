@@ -16,11 +16,14 @@ hide_buttons_style = """
     footer {
         visibility: hidden;
     }
-    button[data-testid="manage-app-button"] {
+    button[title="Manage app"] {
         display: none !important;
     }
     .stActionButton { 
         display: none !important; 
+    }
+    .styles_terminalButton__3JBI5T {
+        display: none !important;
     }
     </style>
 """
