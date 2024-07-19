@@ -26,101 +26,30 @@ if is_authenticated:
         default_index=0,
         orientation="horizontal"
     )
-
     if selected == "Home":
-        st.markdown("""
-        <style>
-        .form-container {
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            font-family: 'Arial', sans-serif;
-            color: #333;
-            margin-top: 20px;
-        }
-        .form-container h2 {
-            text-align: center;
-            color: #0073e6;
-            font-size: 24px;
-        }
-        .form-container .input-container {
-            margin-bottom: 15px;
-        }
-        .form-container .input-container label {
-            font-weight: bold;
-            display: block;
-            margin-bottom: 5px;
-        }
-        .form-container .input-container input,
-        .form-container .input-container select,
-        .form-container .input-container textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-        .form-container .btn-save {
-            background: linear-gradient(90deg, #0073e6, #005bb5);
-            color: #fff;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            display: block;
-            width: 100%;
-            text-align: center;
-            font-size: 16px;
-            margin-top: 20px;
-            transition: background 0.3s;
-        }
-        .form-container .btn-save:hover {
-            background: linear-gradient(90deg, #005bb5, #0073e6);
-        }
-        .form-container .spinner {
-            display: none;
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-radius: 50%;
-            border-top: 4px solid #3498db;
-            width: 40px;
-            height: 40px;
-            animation: spin 2s linear infinite;
-            margin: auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        </style>
-        """, unsafe_allow_html=True)
+        st.title("Enter Customer Information")
+        hello = st.text_input("THE NAME")
+        phone = st.text_input("Phone Number")
+        city = st.selectbox("Select City", ["بغداد", "البصرة", "نينوى", "الانبار", "ديالى", "كربلاء", "بابل", "واسط", "صلاح الدين", "القادسيه", "ذي قار", "المثنى", "ميسان", "السليمانية", "دهوك", "اربيل", "كركوك", "النجف", "الموصل", "حلبجة"])
+        region = st.text_input("Enter the Region")
+        kind = st.selectbox("type of prodact", ["smart watch", "airtag"])
+        number = st.number_input('price', min_value=0.0, max_value=500000.0, value=25000.0, step=5000.0, format='%0.0f')
+        formatted_number = "{:,.0f}".format(number)
+        total = st.number_input('total', min_value=0, max_value=100, value=1, step=1)
+        more = st.text_area("Type here for more information")
 
-        st.markdown('<div class="form-container">', unsafe_allow_html=True)
-        st.markdown('<h2>Enter Customer Information</h2>', unsafe_allow_html=True)
-        
-        hello = st.text_input("THE NAME", key="name")
-        phone = st.text_input("Phone Number", key="phone")
-        city = st.selectbox("Select City", ["بغداد", "البصرة", "نينوى", "الانبار", "ديالى", "كربلاء", "بابل", "واسط", "صلاح الدين", "القادسيه", "ذي قار", "المثنى", "ميسان", "السليمانية", "دهوك", "اربيل", "كركوك", "النجف", "الموصل", "حلبجة"], key="city")
-        region = st.text_input("Enter the Region", key="region")
-        kind = st.selectbox("type of prodact", ["smart watch", "airtag"], key="kind")
-        number = st.number_input('price', min_value=0.0, max_value=500000.0, value=25000.0, step=5000.0, format='%0.0f', key="price")
-        total = st.number_input('total', min_value=0, max_value=100, value=1, step=1, key="total")
-        more = st.text_area("Type here for more information", key="more")
-
-        if st.button("Save Data", key="save"):
-            with st.spinner("Saving data..."):
-                new_data = {'hello': hello, 'phone': phone, 'city': city, 'region': region, 'more': more, 'number': number, 'kind': kind, 'total': total, 'status': 'Pending'}
-                try:
-                    with open('data.json', 'r') as f:
-                        old_data = json.load(f)
-                except (FileNotFoundError, json.JSONDecodeError):
-                    old_data = []
-                old_data.append(new_data)
-                with open('data.json', 'w') as f:
-                    json.dump(old_data, f)
-                st.success("Data saved successfully!")
-
-        st.markdown('</div>', unsafe_allow_html=True)
+        if st.button("Save Data"):
+            new_data = {'hello': hello, 'phone': phone, 'city': city, 'region': region, 'more': more, 'number': number, 'kind': kind, 'total': total, 'status': 'Pending'}
+            try:
+                with open('data.json', 'r') as f:
+                    old_data = json.load(f)
+            except (FileNotFoundError, json.JSONDecodeError):
+                old_data = []
+            # إدراج الطلب الجديد في بداية القائمة
+            old_data.insert(0, new_data)
+            with open('data.json', 'w') as f:
+                json.dump(old_data, f)
+            st.success("Data saved successfully!")
 
     elif selected == "Profile":
         st.title("Profile Information")
@@ -176,7 +105,6 @@ if is_authenticated:
             st.error("No data found. Please enter customer information first.")
 
     elif selected == "Settings":
-        st.title("Settings")
-        # إضافة إعدادات مناسبة هنا بناءً على متطلبات التطبيق
+        st.write("Here you can change your settings.")
 else:
     st.warning("Please enter a valid code to proceed.")
