@@ -22,6 +22,12 @@ hide_buttons_style = """
     .stActionButton { 
         display: none !important; 
     }
+    .st-af {
+        display: none !important;
+    }
+    .stButton > button {
+        display: none !important;
+    }
     </style>
 """
 st.markdown(hide_buttons_style, unsafe_allow_html=True)
