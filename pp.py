@@ -12,14 +12,22 @@ hide_button_script = """
 
     .cover-badge {
         position: fixed;
-        bottom: 0px;  /* التأكد من أن الطبقة تغطي الزر */
-        right: 0px;   /* التأكد من أن الطبقة تغطي الزر */
-        width: 100px;  /* زيادة العرض لتغطية الزر بالكامل */
-        height: 100px; /* زيادة الارتفاع لتغطية الزر بالكامل */
+        bottom: 0px;
+        right: 0px;
+        width: 100px;
+        height: 100px;
         background-color: white;
         z-index: 9999;
     }
     </style>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var badge = document.querySelector('.cover-badge');
+        if (badge) {
+            badge.style.zIndex = 9999;
+        }
+    });
+    </script>
     <div class='cover-badge'></div>
 """
 st.markdown(hide_button_script, unsafe_allow_html=True)
