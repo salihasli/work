@@ -1,7 +1,6 @@
 import streamlit as st
 import json
 from streamlit_option_menu import option_menu
-import os
 
 # إخفاء أزرار GitHub وزر "Manage app"
 hide_buttons_style = """
@@ -16,7 +15,7 @@ hide_buttons_style = """
         visibility: hidden;
     }
     button[title="Manage app"] {
-        display: none !important;
+        display: none !important; 
     }
     .stActionButton { 
         display: none !important; 
@@ -29,53 +28,70 @@ st.markdown(hide_buttons_style, unsafe_allow_html=True)
 def load_data():
     try:
         with open('data.json', 'r') as f:
-            return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
+            data = json.load(f)
+            if isinstance(data, list):
+                return data
+            else:
+                st.error("Data format in file is incorrect.")
+                return []
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        st.error(f"Error loading data: {e}")
         return []
 
 # تخزين البيانات الجديدة في الملف المحلي
 def save_data(new_data):
-    old_data = load_data()
-    old_data.insert(0, new_data)
-    with open('data.json', 'w') as f:
-        json.dump(old_data, f)
-    st.success("Data saved successfully!")
+    if isinstance(new_data, list):
+        with open('data.json', 'w') as f:
+            json.dump(new_data, f)
+        st.success("Data saved successfully!")
+    else:
+        st.error("Invalid data format for saving.")
 
 # تنسيق الطلبات باستخدام HTML و CSS
 def format_order(data, index):
-    formatted_number = "{:,.0f}".format(data['number'])
-    background_color = "#d4edda" if data.get('status') == 'Completed' else "#f8d7da"
-    status_color = "green" if data.get('status') == 'Completed' else "red"
-    order_html = f"""
-    <div style="border-radius: 8px; padding: 16px; margin-bottom: 10px; background-color: #fff; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
-        <div style="display: flex; flex-direction: column; align-items: flex-start;">
-            <div style="font-weight: bold; font-size: 1.2em;">{data['hello']}</div>
-            <div style="color: gray;">{data['region']}</div>
-            <div style="margin: 8px 0;">
-                <span style="background-color: {background_color}; padding: 4px 8px; border-radius: 4px; color: {status_color};"><strong>{data.get('status')}</strong></span>
-                <span style="background-color: #f0f0f0; padding: 4px 8px; border-radius: 4px; margin-left: 8px;">Order #: {index+1}</span>
+    if isinstance(data, dict):  # تأكد من أن data قاموس
+        try:
+            formatted_number = "{:,.0f}".format(data.get('number', 0))
+        except (KeyError, ValueError):
+            formatted_number = "Invalid number"
+        
+        background_color = "#d4edda" if data.get('status') == 'Completed' else "#f8d7da"
+        status_color = "green" if data.get('status') == 'Completed' else "red"
+        order_html = f"""
+        <div style="border-radius: 8px; padding: 16px; margin-bottom: 10px; background-color: #fff; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+            <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                <div style="font-weight: bold; font-size: 1.2em;">{data.get('hello', 'N/A')}</div>
+                <div style="color: gray;">{data.get('region', 'N/A')}</div>
+                <div style="margin: 8px 0;">
+                    <span style="background-color: {background_color}; padding: 4px 8px; border-radius: 4px; color: {status_color};"><strong>{data.get('status', 'N/A')}</strong></span>
+                    <span style="background-color: #f0f0f0; padding: 4px 8px; border-radius: 4px; margin-left: 8px;">Order #: {index+1}</span>
+                </div>
+                <div style="color: gray;">{data.get('phone', 'N/A')}</div>
             </div>
-            <div style="color: gray;">{data['phone']}</div>
         </div>
-    </div>
-    """
-    return order_html
+        """
+        return order_html
+    else:
+        return "<div>Invalid data format</div>"
 
 def format_order_details(data):
-    details_html = f"""
-    <div style="border-radius: 8px; padding: 16px; background-color: #fff; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
-        <p><strong>Name:</strong> {data['hello']}</p>
-        <p><strong>Phone Number:</strong> {data['phone']}</p>
-        <p><strong>City:</strong> {data['city']}</p>
-        <p><strong>Region:</strong> {data['region']}</p>
-        <p><strong>Price:</strong> {data['number']}</p>
-        <p><strong>Type:</strong> {data['kind']}</p>
-        <p><strong>Total:</strong> {data['total']}</p>
-        <p><strong>More Information:</strong> {data['more']}</p>
-        <p><strong>Status:</strong> {data['status']}</p>
-    </div>
-    """
-    return details_html
+    if isinstance(data, dict):  # تأكد من أن data قاموس
+        details_html = f"""
+        <div style="border-radius: 8px; padding: 16px; background-color: #fff; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+            <p><strong>Name:</strong> {data.get('hello', 'N/A')}</p>
+            <p><strong>Phone Number:</strong> {data.get('phone', 'N/A')}</p>
+            <p><strong>City:</strong> {data.get('city', 'N/A')}</p>
+            <p><strong>Region:</strong> {data.get('region', 'N/A')}</p>
+            <p><strong>Price:</strong> {data.get('number', 'N/A')}</p>
+            <p><strong>Type:</strong> {data.get('kind', 'N/A')}</p>
+            <p><strong>Total:</strong> {data.get('total', 'N/A')}</p>
+            <p><strong>More Information:</strong> {data.get('more', 'N/A')}</p>
+            <p><strong>Status:</strong> {data.get('status', 'N/A')}</p>
+        </div>
+        """
+        return details_html
+    else:
+        return "<div>Invalid data format</div>"
 
 # تعريف الكود السري للتحقق
 code = "صالح"  # يجب تعيين كود السر الخاص بك هنا
@@ -115,27 +131,34 @@ if is_authenticated:
 
         if st.button("Save Data"):
             new_data = {'hello': hello, 'phone': phone, 'city': city, 'region': region, 'more': more, 'number': number, 'kind': kind, 'total': total, 'status': 'Pending'}
-            save_data(new_data)
+            existing_data = load_data()
+            existing_data.append(new_data)
+            save_data(existing_data)
 
     elif selected == "Orders":
         st.title("Order Information")
 
         all_data = load_data()
 
-        for i, data in enumerate(all_data):
+        # استخدام نسخة جديدة من البيانات لتجنب تعديل القائمة أثناء التكرار
+        updated_data = all_data.copy()
+
+        for i, data in enumerate(updated_data):
             st.markdown(format_order(data, i), unsafe_allow_html=True)
             with st.expander(f"View Details for Order {i+1}"):
                 st.markdown(format_order_details(data), unsafe_allow_html=True)
                 col1, col2 = st.columns([1, 1])
                 if col1.button(f"Toggle Status {i+1}", key=f"toggle_button_{i}"):
-                    new_status = 'Pending' if data.get('status') == 'Completed' else 'Completed'
-                    all_data[i]['status'] = new_status
-                    save_data(all_data)
-                    st.experimental_rerun()
+                    if isinstance(data, dict):
+                        new_status = 'Pending' if data.get('status') == 'Completed' else 'Completed'
+                        updated_data[i]['status'] = new_status
+                        save_data(updated_data)
+                        st.experimental_rerun()
                 if col2.button(f"Delete Entry {i+1}", key=f"delete_button_{i}"):
-                    del all_data[i]
-                    save_data(all_data)
-                    st.experimental_rerun()
+                    if isinstance(data, dict):
+                        del updated_data[i]
+                        save_data(updated_data)
+                        st.experimental_rerun()
                 st.write("---")
 
     elif selected == "Search":
@@ -148,33 +171,34 @@ if is_authenticated:
 
         col1, col2 = st.columns([1, 1])
         with col1:
-            search_button = st.button("Search")
+            if st.button("Search"):
+                st.session_state.search_query = search_query.lower()
+                st.experimental_rerun()  # إعادة تحميل الصفحة بعد الضغط على زر البحث
         with col2:
-            clear_button = st.button("Clear Search")
-
-        if search_button:
-            st.session_state.search_query = search_query
-        elif clear_button:
-            st.session_state.search_query = ""
-            st.experimental_rerun()
+            if st.button("Clear Search"):
+                st.session_state.search_query = ""
+                st.experimental_rerun()  # إعادة تحميل الصفحة بعد الضغط على زر مسح البحث
 
         all_data = load_data()
 
-        # تطبيق الفلترة
-        filtered_data = [entry for entry in all_data if st.session_state.search_query.lower() in entry['phone'].lower() or st.session_state.search_query.lower() in entry['hello'].lower()]
+        filtered_data = [entry for entry in all_data if isinstance(entry, dict) and (st.session_state.search_query in entry.get('phone', '').lower() or st.session_state.search_query in entry.get('hello', '').lower())]
 
-        for i, data in enumerate(filtered_data):
-            st.markdown(format_order(data, i), unsafe_allow_html=True)
-            with st.expander(f"View Details for Order {i+1}"):
-                st.markdown(format_order_details(data), unsafe_allow_html=True)
-                col1, col2 = st.columns([1, 1])
-                if col1.button(f"Toggle Status {i+1}", key=f"toggle_button_search_{i}"):
-                    new_status = 'Pending' if data.get('status') == 'Completed' else 'Completed'
-                    filtered_data[i]['status'] = new_status
-                    save_data(filtered_data)
-                    st.experimental_rerun()
-                if col2.button(f"Delete Entry {i+1}", key=f"delete_button_search_{i}"):
-                    del filtered_data[i]
-                    save_data(filtered_data)
-                    st.experimental_rerun()
-                st.write("---")
+        if filtered_data:
+            for i, data in enumerate(filtered_data):
+                st.markdown(format_order(data, i), unsafe_allow_html=True)
+                with st.expander(f"View Details for Order {i+1}"):
+                    st.markdown(format_order_details(data), unsafe_allow_html=True)
+                    col1, col2 = st.columns([1, 1])
+                    if col1.button(f"Toggle Status {i+1}", key=f"toggle_button_search_{i}"):
+                        if isinstance(data, dict):
+                            new_status = 'Pending' if data.get('status') == 'Completed' else 'Completed'
+                            filtered_data[i]['status'] = new_status
+                            save_data(filtered_data)
+                            st.experimental_rerun()
+                    if col2.button(f"Delete Entry {i+1}", key=f"delete_button_search_{i}"):
+                        if isinstance(data, dict):
+                            del filtered_data[i]
+                            save_data(filtered_data)
+                            st.experimental_rerun()
+        else:
+            st.write("No entries found with your search criteria.")
