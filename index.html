@@ -13,6 +13,9 @@
         .wrapper {
             position: relative;
             z-index: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             width: 100vw;
             height: 100vh;
         }
@@ -20,12 +23,13 @@
 
         .hidefooter {
             position: absolute;
-            width: 66px;
-            height: 46px;
+            width: 100%;
+            height: 120px; /* زيادة الارتفاع لتغطية الزر بالكامل */
             background: white;
             right: 0px;
             bottom: 0px;
             z-index: 2;
+            display: block;
         }
 
 
@@ -33,17 +37,4 @@
             display: block;
             background: #ffffff;
             border: none;
-            width: 100%;
-            height: 100%;
-        }
-    </style>
-</head>
-<body>
-    <div class="wrapper">
-        <div class="hidefooter"></div>
-        <iframe src="https://salih-1.streamlit.app/?embedded=true">
-            <p>Your browser doesn't support iframes</p>
-        </iframe>
-    </div>
-</body>
-</html>
+            width: ⬤
