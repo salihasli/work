@@ -24,4 +24,4 @@ st.markdown(hide_button_style, unsafe_allow_html=True)
 # إضافة خانة إدخال
 st.title('أدخل معلوماتك')
 user_input = st.text_input("أدخل معلومة هنا:")
-st.write("المعلومة التي أدخلتها هي:", user_input)
+st.write("المعلومة التي  هي:", user_input)
