@@ -1,15 +1,16 @@
 import streamlit as st
 import json
 
-# إخفاء أزرار GitHub وزر "Manage app" والقائمة الرئيسية
-hide_buttons_style = """
+# إخفاء الزر البرتقالي
+hide_orange_button_style = """
     <style>
-    .viewerBadge_container__1QSob, footer, #MainMenu, button[title="Manage app"], .css-1cpxqw2 { 
-        display: none !important; 
+    .viewerBadge_link_qRIco {
+        display: none !important;
     }
     </style>
 """
-st.markdown(hide_buttons_style, unsafe_allow_html=True)
+st.markdown(hide_orange_button_style, unsafe_allow_html=True)
+
 
 # عنوان للصفحة
 st.title('أدخل معلوماتك')
