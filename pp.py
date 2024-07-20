@@ -1,27 +1,23 @@
 import streamlit as st
 
-# إخفاء الزر البرتقالي باستخدام CSS وJavaScript
-hide_button_script = """
+# إضافة طبقة لتغطية الزر البرتقالي
+cover_badge_script = """
     <style>
-    .viewerBadge_container__r5tak,
-    .styles_viewerBadge__CvC9N,
-    .viewerBadge_link__qRIco,
-    .viewerBadge_container {
-        display: none !important;
+    .cover-badge {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        width: 50px;
+        height: 50px;
+        background-color: white;
+        z-index: 9999;
     }
     </style>
-    <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        var elements = document.querySelectorAll('.viewerBadge_container__r5tak, .styles_viewerBadge__CvC9N, .viewerBadge_link__qRIco, .viewerBadge_container');
-        elements.forEach(function(element) {
-            element.style.display = 'none';
-        });
-    });
-    </script>
+    <div class='cover-badge'></div>
 """
-st.markdown(hide_button_script, unsafe_allow_html=True)
+st.markdown(cover_badge_script, unsafe_allow_html=True)
 
 # إضافة خانة إدخال
 st.title('أدخل معلوماتك')
 user_input = st.text_input("أدخل معلومة هنا:")
-st.write(" التي أدخلتها هي:", user_input)
+st.write("المعلومة التي أدخلتها هي:", user_input)
