@@ -2,22 +2,10 @@ import streamlit as st
 import json
 from streamlit_option_menu import option_menu
 
-# إخفاء أزرار GitHub وزر "Manage app"
+# إخفاء أزرار GitHub وزر "Manage app" والقائمة الرئيسية
 hide_buttons_style = """
     <style>
-    .viewerBadge_container__1QSob { 
-        display: none !important; 
-    }
-    #MainMenu {
-        visibility: hidden;
-    }
-    footer {
-        visibility: hidden;
-    }
-    button[title="Manage app"] {
-        display: none !important; 
-    }
-    .stActionButton { 
+    .viewerBadge_container__1QSob, footer, #MainMenu, button[title="Manage app"], .css-1r6slb0 { 
         display: none !important; 
     }
     </style>
