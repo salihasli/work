@@ -1,9 +1,9 @@
 import streamlit as st
 
-# إخفاء الزر البرتقالي
+# إخفاء الزر البرتقالي الذي يظهر في الزاوية السفلية اليمنى
 hide_orange_button_style = """
     <style>
-    .viewerBadge_link_qRIco {
+    .viewerBadge_container_r5tak {
         display: none !important;
     }
     </style>
