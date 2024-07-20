@@ -5,10 +5,10 @@ hide_button_script = """
     <style>
     .cover-badge {
         position: fixed;
-        bottom: 0;
-        right: 0;
-        width: 80px;  /* زيادة العرض لتغطية الزر بالكامل */
-        height: 80px;  /* زيادة الارتفاع لتغطية الزر بالكامل */
+        bottom: 10px;  /* تعديل الموضع لتحريك الطبقة */
+        right: 10px;   /* تعديل الموضع لتحريك الطبقة */
+        width: 100px;  /* زيادة العرض لتغطية الزر بالكامل */
+        height: 100px; /* زيادة الارتفاع لتغطية الزر بالكامل */
         background-color: white;
         z-index: 9999;
     }
