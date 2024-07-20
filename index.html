@@ -1,16 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
         }
 
         .wrapper {
             position: relative;
             z-index: 1;
-            display: inline-block;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             width: 100vw;
+            height: 100vh;
         }
 
         .hidefooter {
@@ -28,8 +34,8 @@
             display: block;
             background: #ffffff;
             border: none;
-            height: 99vh;
-            width: 99vw;
+            width: 100%;
+            height: calc(100% - 50px);  /* تقليل الارتفاع لتجنب تداخل الزر */
         }
     </style>
 </head>
