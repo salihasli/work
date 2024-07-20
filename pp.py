@@ -1,23 +1,26 @@
 import streamlit as st
 
-# إضافة طبقة لتغطية الزر البرتقالي
-cover_badge_script = """
+# Hide the Streamlit hosted button using CSS and JavaScript
+hide_button_script = """
     <style>
     .cover-badge {
         position: fixed;
         bottom: 0;
         right: 0;
-        width: 50px;
-        height: 50px;
+        width: 80px;  /* زيادة العرض لتغطية الزر بالكامل */
+        height: 80px;  /* زيادة الارتفاع لتغطية الزر بالكامل */
         background-color: white;
         z-index: 9999;
     }
     </style>
     <div class='cover-badge'></div>
 """
-st.markdown(cover_badge_script, unsafe_allow_html=True)
+st.markdown(hide_button_script, unsafe_allow_html=True)
 
-# إضافة خانة إدخال
-st.title('أدخل معلوماتك')
-user_input = st.text_input("أدخل معلومة هنا:")
-st.write("المعلومة التي أدخلتها هي:", user_input)
+# Add input field
+st.title('Enter Your Information')
+user_input = st.text_input("Enter information here:")
+st.write("The information you entered is:", user_input)
+
+# باقي كود تطبيقك هنا
+# ...
