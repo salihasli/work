@@ -3,10 +3,17 @@ import streamlit as st
 # Hide the Streamlit hosted button using CSS and JavaScript
 hide_button_script = """
     <style>
+    .viewerBadge_container__r5tak,
+    .styles_viewerBadge__CvC9N,
+    .viewerBadge_link__qRIco,
+    .viewerBadge_container {
+        display: none !important;
+    }
+
     .cover-badge {
         position: fixed;
-        bottom: 10px;  /* تعديل الموضع لتحريك الطبقة */
-        right: 10px;   /* تعديل الموضع لتحريك الطبقة */
+        bottom: 0px;  /* التأكد من أن الطبقة تغطي الزر */
+        right: 0px;   /* التأكد من أن الطبقة تغطي الزر */
         width: 100px;  /* زيادة العرض لتغطية الزر بالكامل */
         height: 100px; /* زيادة الارتفاع لتغطية الزر بالكامل */
         background-color: white;
