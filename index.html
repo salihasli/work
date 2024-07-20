@@ -1,51 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
 
-        .wrapper {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100vw;
-            height: 100vh;
-        }
 
-        .hidefooter {
-            position: absolute;
-            width: 66px;  /* عرض الصورة */
-            height: 46px; /* ارتفاع الصورة */
-            background: url('images/white-box.png') no-repeat center center;  /* استبدل `images/white-box.png` بمسار الصورة في المستودع */
-            background-size: cover;
-            right: 0px;
-            bottom: 0px;
-            z-index: 2;
-            display: block;
-        }
+        .wrapper {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+        }
 
-        iframe {
-            display: block;
-            background: #ffffff;
-            border: none;
-            width: 100%;
-            height: calc(100% - 46px);  /* تقليل الارتفاع لتجنب تداخل الزر */
-        }
-    </style>
+
+        .hidefooter {
+            position: absolute;
+            width: 66px; /* عرض المربع */
+            height: 46px; /* ارتفاع المربع */
+            background: white; /* يمكنك استخدام صورة هنا إذا أردت */
+            right: 0px;
+            bottom: 0px;
+            z-index: 2;
+        }
+
+
+        iframe {
+            display: block;
+            background: #ffffff;
+            border: none;
+            width: 100%;
+            height: 100%; /* تأكد من أن iframe يملأ الشاشة بالكامل */
+        }
+    </style>
 </head>
 <body>
-    <div class="wrapper">
-        <div class="hidefooter"></div>
-        <iframe src="https://salih-1.streamlit.app/?embedded=true">
-            <p>Your browser doesn't support iframes</p>
-        </iframe>
-    </div>
+    <div class="wrapper">
+        <div class="hidefooter"></div>
+        <iframe src="https://salih-1.streamlit.app/?embedded=true">
+            <p>Your browser doesn't support iframes</p>
+        </iframe>
+    </div>
 </body>
 </html>
