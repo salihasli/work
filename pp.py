@@ -73,7 +73,6 @@ def format_order_details(data):
 code = "صالح"
 
 # طلب كود التسجيل
-st.title("If you have a code, enter here:")
 if "is_authenticated" not in st.session_state:
     st.session_state.is_authenticated = False
 
@@ -96,7 +95,6 @@ selected = option_menu(
 )
 
 if selected == "Home":
-    st.title("Enter Customer Information")
     hello, phone = st.text_input("THE NAME"), st.text_input("Phone Number")
     city = st.selectbox("Select City", ["بغداد", "البصرة", "نينوى", "الانبار", "ديالى", "كربلاء", "بابل", "واسط", "صلاح الدين", "القادسيه", "ذي قار", "المثنى", "ميسان", "السليمانية", "دهوك", "اربيل", "كركوك", "النجف", "الموصل", "حلبجة"])
     region, kind = st.text_input("Enter the Region"), st.selectbox("type of prodact", ["smart watch", "airtag"])
@@ -113,7 +111,6 @@ if selected == "Home":
             save_data(existing_data)
 
 elif selected == "Orders":
-    st.title("Order Information")
     all_data = load_data()
     updated_data = all_data.copy()
 
@@ -225,8 +222,8 @@ elif selected == "Dashboard":
             revenue_by_city[city] = revenue_by_city.get(city, 0) + item.get('number', 0)
             if date != 'Unknown':
                 orders_by_date[date] = orders_by_date.get(date, 0) + 1
-                if item.get('status') == 'Delivered':
-                    revenue_by_date[date] = revenue_by_date.get(date, 0) + item.get('number', 0)
+                if item.get('status') in ['Pending', 'Completed', 'Delivered']:
+                    revenue_by_date[date] = revenue_by_date.get(date, 0) + (item['number'] if item['status'] == 'Delivered' else 0)
 
         return total_orders, pending_orders, completed_orders, delivered_orders, total_revenue, orders_by_city, revenue_by_city, orders_by_date, revenue_by_date
 
@@ -245,18 +242,17 @@ elif selected == "Dashboard":
 
     # واجهة المستخدم
     st.title("Dashboard: Order Analysis")
-    st.markdown("## Summary Statistics")
 
     # تحديد القيم القصوى لكل دائرة
     max_total_orders = 1500
     max_pending_completed_orders = 150
     max_delivered_orders = 1000
-
+    max_pending_orders_orders = 150
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         draw_circle(total_orders, "الطلبات الكلية", max_value=max_total_orders)
     with col2:
-        draw_circle(pending_orders, "عدد الطلبات", max_value=max_pending_completed_orders)
+        draw_circle(pending_orders, "عدد الطلبات", max_value=max_pending_orders_orders)
     with col3:
         draw_circle(completed_orders, "الطلبات المسجلة", max_value=max_pending_completed_orders)
     with col4:
@@ -267,7 +263,7 @@ elif selected == "Dashboard":
         st.markdown("## Daily Revenue")
         today = datetime.today().date()
         daily_revenue = {date: revenue for date, revenue in revenue_by_date.items() if date == today}
-        
+    
         if today not in daily_revenue:
             daily_revenue[today] = 0
 
@@ -291,13 +287,9 @@ elif selected == "Dashboard":
                         </div>
                         """, unsafe_allow_html=True)
 
-    st.markdown("<hr style='border:1px solid #eee'>", unsafe_allow_html=True)
-    st.markdown("## Daily Orders Trend")
 
-    # رسم المخطط الخطي لنسبة التغير اليومية
-    if not df_orders.empty:
-        fig = px.area(df_orders, x='Date', y='Orders', title='Daily Orders Trend', line_shape='linear')
-        fig.update_traces(line=dict(color='#1E90FF'))
-        st.plotly_chart(fig)
-    else:
-        st.write("No data available for the chart.")
+
+
+
+    st.markdown("<hr style='border:10px solid #eee'>", unsafe_allow_html=True)
+
