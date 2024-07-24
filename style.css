@@ -1,0 +1,8 @@
+@font-face {
+    font-family: 'Hacen Tunisia';
+    src: url('fonts/Hacen-Tunisia-Bold.ttf') format('truetype');
+}
+
+body, html, h1, h2, h3, h4, h5, h6, p, div, span, a, li, ul, ol, button, input, select, textarea, .stButton button, .stTextInput div, .stSelectbox div, .stNumberInput div, .stMarkdown, .stExpander {
+    font-family: 'Hacen Tunisia', sans-serif;
+}
