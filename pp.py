@@ -176,14 +176,14 @@ elif selected == "Dashboard":
         angle = (percentage / 100) * 360
         with st.container():
             st.markdown(f"""
-            <div style="display: flex; flex-direction: column; align-items: center; background-color: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+            <div style="display: flex; flex-direction: column; align-items: center; background-color: white; padding: 5px; border-radius: 40px; box-shadow: 0 0 100px rgba(0,0,0,0.1); margin-bottom: 50px;">
                 <svg viewBox="0 0 36 36" width="150" height="150">
                     <path d="M18 2.0845
                              a 15.9155 15.9155 0 0 1 0 31.831
                              a 15.9155 15.9155 0 0 1 0 -31.831"
                           fill="none"
                           stroke="#eeeeee"
-                          stroke-width="4"
+                          stroke-width="3"
                           stroke-linecap="round"></path>
                     <path d="M18 2.0845
                              a 15.9155 15.9155 0 0 1 0 31.831"
@@ -248,11 +248,15 @@ elif selected == "Dashboard":
     max_pending_completed_orders = 150
     max_delivered_orders = 1000
     max_pending_orders_orders = 150
-    col1, col2, col3, col4 = st.columns(4)
+
+    # تعديل التنسيق لجعل الدوائر تظهر كل دائرتين في سطر
+    col1, col2 = st.columns(2)
     with col1:
         draw_circle(total_orders, "الطلبات الكلية", max_value=max_total_orders)
     with col2:
         draw_circle(pending_orders, "عدد الطلبات", max_value=max_pending_orders_orders)
+
+    col3, col4 = st.columns(2)
     with col3:
         draw_circle(completed_orders, "الطلبات المسجلة", max_value=max_pending_completed_orders)
     with col4:
@@ -261,11 +265,12 @@ elif selected == "Dashboard":
     # عرض الإيرادات اليومية بطريقة احترافية باستخدام بطاقات متعددة الأعمدة داخل expander
     with st.expander("عرض الإيرادات اليومية"):
         st.markdown("## Daily Revenue")
-        today = datetime.today().date()
-        daily_revenue = {date: revenue for date, revenue in revenue_by_date.items() if date == today}
-    
-        if today not in daily_revenue:
-            daily_revenue[today] = 0
+
+    # حساب الإيرادات اليومية فقط للطلبات المستلمة
+        daily_revenue = {}
+        for date, revenue in revenue_by_date.items():
+            if date in revenue_by_date:
+                daily_revenue[date] = revenue_by_date[date]
 
         dates = list(daily_revenue.keys())
         revenues = list(daily_revenue.values())
@@ -286,10 +291,3 @@ elif selected == "Dashboard":
                             <p style="font-size: 20px; color: #1E90FF;"><strong>{formatted_revenue} دينار عراقي</strong></p>
                         </div>
                         """, unsafe_allow_html=True)
-
-
-
-
-
-    st.markdown("<hr style='border:10px solid #eee'>", unsafe_allow_html=True)
-
