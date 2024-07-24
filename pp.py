@@ -1,9 +1,44 @@
+import shutil
+from pathlib import Path
 import streamlit as st
+
+# وظيفة لنقل ملفات الخط إلى مجلد ثابت في Streamlit
+def move_font_files():
+    STREAMLIT_STATIC_PATH = Path(st.__path__[0]) / "static"
+    CSS_PATH = STREAMLIT_STATIC_PATH / "fonts"
+    if not CSS_PATH.is_dir():
+        CSS_PATH.mkdir()
+
+    font_file = CSS_PATH / "Hacen-Tunisia-Bold.ttf"
+    if not font_file.exists():
+        shutil.copy("fonts/Hacen-Tunisia-Bold.ttf", font_file)
+    print(f"Font file moved to: {font_file}")
+
+# نقل ملف الخط
+move_font_files()
+
+# تحميل ملف CSS
+def load_css(file_name):
+    with open(file_name) as f:
+        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+# تحميل CSS في المشروع
+load_css("style.css")
+
 import json
 from streamlit_option_menu import option_menu
 import pandas as pd
 import plotly.express as px
 from datetime import datetime, timedelta
+
+# تحميل ملف CSS
+def load_css(file_name):
+    with open(file_name) as f:
+        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+# تحميل CSS في المشروع
+load_css("style.css")
+
 
 # إخفاء أزرار GitHub وزر "Manage app"
 st.markdown("""
