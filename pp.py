@@ -4,36 +4,65 @@ from streamlit_option_menu import option_menu
 import pandas as pd
 import plotly.express as px
 from datetime import datetime, timedelta
+import gspread
+from google.oauth2.service_account import Credentials
+from concurrent.futures import ThreadPoolExecutor
+
+def load_css(file_name):
+    with open(file_name) as f:
+        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+# استدعاء الدالة لتحميل ملف CSS
+load_css("custom.css")
 
 
-# إخفاء أزرار GitHub وزر "Manage app"
-st.markdown("""
-    <style>
-    .viewerBadge_container__1QSob, button[title="Manage app"], .stActionButton, #MainMenu, footer { display: none !important; visibility: hidden; }
-    </style>
-    """, unsafe_allow_html=True)
+# إعداد Google Sheets API
+def get_gspread_client():
+    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+    creds = Credentials.from_service_account_file('C:\\Users\\Windows10\\Desktop\\app\\diesel-ring-430422-p8-2b09b298810f.json', scopes=scope)
+    client = gspread.authorize(creds)
+    return client
 
-# تحميل وتخزين البيانات
+def get_sheet():
+    client = get_gspread_client()
+    spreadsheet = client.open("MyTestSheet")
+    sheet = spreadsheet.sheet1
+    return sheet
+
+# تحميل البيانات مع التخزين المؤقت
+@st.cache_data(ttl=600)  # التخزين المؤقت لمدة 10 دقائق
 def load_data():
-    try:
-        with open('data.json', 'r') as f:
-            data = json.load(f)
-            return data if isinstance(data, list) else st.error("Data format in file is incorrect.") or []
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        st.error(f"Error loading data: {e}")
-        return []
+    sheet = get_sheet()
+    data = sheet.get_all_records()
+    return data if isinstance(data, list) else []
+
+def save_data_to_gsheet(data):
+    sheet = get_sheet()
+    if isinstance(data, list):
+        sheet.clear()
+        sheet.insert_row(list(data[0].keys()), 1)  # Add header
+        for i, row in enumerate(data, start=2):
+            sheet.insert_row(list(row.values()), i)
+
+executor = ThreadPoolExecutor(max_workers=5)
 
 def save_data(new_data):
-    if isinstance(new_data, list):
-        with open('data.json', 'w') as f:
-            json.dump(new_data, f)
-        st.success("Data saved successfully!")
-    else:
-        st.error("Invalid data format for saving.")
+    if 'all_data' not in st.session_state:
+        st.session_state.all_data = load_data()
+    st.session_state.all_data.insert(0, new_data)
+    executor.submit(save_data_to_gsheet, st.session_state.all_data)
+
+def update_order_status(index, new_status):
+    st.session_state.all_data[index]['status'] = new_status
+    executor.submit(save_data_to_gsheet, st.session_state.all_data)
+
+def delete_order(index):
+    del st.session_state.all_data[index]
+    executor.submit(save_data_to_gsheet, st.session_state.all_data)
 
 # تنسيق الطلبات باستخدام HTML و CSS
 def format_order(data, index):
-    formatted_number = "{:,.0f}".format(data.get('number', 0)).replace(',', '.')
+    formatted_number = "{:,.0f}".format(float(data.get('number', 0) or 0)).replace(',', '.')
     background_color = "#d4edda" if data.get('status') == 'Completed' else "#f8d7da"
     if data.get('status') == 'Delivered':
         background_color = "#cce5ff"
@@ -55,7 +84,7 @@ def format_order(data, index):
     """
 
 def format_order_details(data):
-    formatted_number = "{:,.0f}".format(data.get('number', 0)).replace(',', '.')
+    formatted_number = "{:,.0f}".format(float(data.get('number', 0) or 0)).replace(',', '.')
     return f"""
     <div style="border-radius: 8px; padding: 16px; background-color: #fff; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
         <p><strong>Name:</strong> {data.get('hello', 'N/A')}</p>
@@ -70,32 +99,67 @@ def format_order_details(data):
     </div>
     """
 
-# تعريف الكود السري للتحقق
-code = "صالح"
+# إدارة الموظفين
+def load_employees():
+    try:
+        with open('employees.json', 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
 
-# طلب كود التسجيل
-if "is_authenticated" not in st.session_state:
+def save_employees(employees):
+    with open('employees.json', 'w') as f:
+        json.dump(employees, f)
+
+def get_current_device():
+    import socket
+    return socket.gethostname()
+
+employees = load_employees()
+
+# إعادة تعيين حساب المدير إذا تم حذفه
+if 'admin' not in employees:
+    employees['admin'] = {'code': 'admin123', 'is_manager': True, 'devices': [], 'permissions': {'Settings': True, 'Home': True, 'Orders': True, 'Search': True, 'Dashboard': True}}
+    save_employees(employees)
+    st.info("Default admin account created. Username: 'admin', Password: 'admin123'")
+
+# إضافة صفحة جديدة للموظفين
+if 'is_authenticated' not in st.session_state:
     st.session_state.is_authenticated = False
+    st.session_state.is_manager = False
+    st.session_state.current_user = None
 
 if not st.session_state.is_authenticated:
-    if st.text_input("Type your code") == code:
-        st.session_state.is_authenticated = True
-        st.success("Login successful")
-    else:
-        st.warning("Please enter a valid code to proceed.")
-        st.stop()
+    username = st.text_input("Enter your username")
+    code = st.text_input("Enter your access code", type='password')
+    if st.button("Login"):
+        if username in employees and employees[username]['code'] == code:
+            st.session_state.is_authenticated = True
+            st.session_state.is_manager = employees[username].get('is_manager', False)
+            st.session_state.current_user = username
+            st.success("Login successful")
+        else:
+            st.error("Invalid username or code")
+    st.stop()
+
+# التحقق من الصلاحيات
+current_user_permissions = employees[st.session_state.current_user].get('permissions', {})
+
+def check_permission(page):
+    return current_user_permissions.get(page, False)  # Assume False if permission key is missing
 
 # عرض القائمة بعد التحقق
+available_pages = ["Home", "Orders", "Search", "Dashboard", "Settings"]
 selected = option_menu(
     menu_title="Menu",
-    options=["Home", "Orders", "Search", "Dashboard"],
-    icons=["house", "clipboard", "search", "graph-up"],
+    options=[page for page in available_pages if check_permission(page)],
+    icons=["house", "clipboard", "search", "graph-up", "gear"],
     menu_icon="cast",
     default_index=0,
     orientation="horizontal"
 )
 
-if selected == "Home":
+if selected == "Home" and check_permission('Home'):
     hello, phone = st.text_input("THE NAME"), st.text_input("Phone Number")
     city = st.selectbox("Select City", ["بغداد", "البصرة", "نينوى", "الانبار", "ديالى", "كربلاء", "بابل", "واسط", "صلاح الدين", "القادسيه", "ذي قار", "المثنى", "ميسان", "السليمانية", "دهوك", "اربيل", "كركوك", "النجف", "الموصل", "حلبجة"])
     region, kind = st.text_input("Enter the Region"), st.selectbox("type of prodact", ["smart watch", "airtag"])
@@ -103,40 +167,39 @@ if selected == "Home":
     more = st.text_area("Type here for more information")
 
     if st.button("Save Data"):
-        if len(phone) != 11 or not phone.isdigit():
-            st.error("The phone number must be exactly 11 digits.")
-        else:
+        with st.spinner("Saving data..."):
+            # إعداد Google Sheets API فقط عند الضغط على زر "Save Data"
             new_data = {'hello': hello, 'phone': phone, 'city': city, 'region': region, 'more': more, 'number': number, 'kind': kind, 'total': total, 'status': 'Pending', 'date': datetime.today().strftime('%Y-%m-%d')}
-            existing_data = load_data()
-            existing_data.insert(0, new_data)
-            save_data(existing_data)
+            save_data(new_data)
+            st.success("Data saved successfully!")
 
-elif selected == "Orders":
-    all_data = load_data()
-    updated_data = all_data.copy()
+# تحميل البيانات من session_state إذا كانت متاحة
+if "all_data" not in st.session_state:
+    st.session_state.all_data = load_data()
 
-    for i, data in enumerate(updated_data):
+if selected == "Orders" and check_permission('Orders'):
+    all_data = st.session_state.all_data
+
+    for i, data in enumerate(all_data):
         st.markdown(format_order(data, i), unsafe_allow_html=True)
         with st.expander(f"View Details for Order {i+1}"):
             st.markdown(format_order_details(data), unsafe_allow_html=True)
             col1, col2, col3 = st.columns([1, 1, 1])
             if col1.button(f"Toggle Status {i+1}", key=f"toggle_button_{i}"):
                 new_status = 'Pending' if data.get('status') == 'Completed' else 'Completed'
-                updated_data[i]['status'] = new_status
-                save_data(updated_data)
+                update_order_status(i, new_status)
+                st.session_state.all_data[i]['status'] = new_status
                 st.experimental_rerun()
             if col2.button(f"Mark as Delivered {i+1}", key=f"deliver_button_{i}"):
-                updated_data[i]['status'] = 'Delivered'
-                save_data(updated_data)
+                update_order_status(i, 'Delivered')
+                st.session_state.all_data[i]['status'] = 'Delivered'
                 st.experimental_rerun()
             if col3.button(f"Delete Entry {i+1}", key=f"delete_button_{i}"):
-                del updated_data[i]
-                save_data(updated_data)
+                delete_order(i)
                 st.experimental_rerun()
             st.write("---")
 
-elif selected == "Search":
-    st.title("Search")
+elif selected == "Search" and check_permission('Search'):
     if "search_query" not in st.session_state:
         st.session_state.search_query = ""
     search_query = st.text_input("Search by phone number or name", key="search_input")
@@ -147,7 +210,8 @@ elif selected == "Search":
         st.session_state.search_query = ""
 
     if st.session_state.search_query:
-        filtered_data = [entry for entry in load_data() if st.session_state.search_query in entry.get('phone', '').lower() or st.session_state.search_query in entry.get('hello', '').lower()]
+        all_data = st.session_state.all_data
+        filtered_data = [entry for entry in all_data if st.session_state.search_query in str(entry.get('phone', '')).lower() or st.session_state.search_query in str(entry.get('hello', '')).lower()]
         if filtered_data:
             for i, data in enumerate(filtered_data):
                 st.markdown(format_order(data, i), unsafe_allow_html=True)
@@ -156,21 +220,20 @@ elif selected == "Search":
                     col1, col2, col3 = st.columns([1, 1, 1])
                     if col1.button(f"Toggle Status {i+1}", key=f"toggle_button_search_{i}"):
                         new_status = 'Pending' if data.get('status') == 'Completed' else 'Completed'
-                        filtered_data[i]['status'] = new_status
-                        save_data(filtered_data)
+                        update_order_status(i, new_status)
+                        st.session_state.all_data[i]['status'] = new_status
                         st.experimental_rerun()
                     if col2.button(f"Mark as Delivered {i+1}", key=f"deliver_button_search_{i}"):
-                        filtered_data[i]['status'] = 'Delivered'
-                        save_data(filtered_data)
+                        update_order_status(i, 'Delivered')
+                        st.session_state.all_data[i]['status'] = 'Delivered'
                         st.experimental_rerun()
                     if col3.button(f"Delete Entry {i+1}", key=f"delete_button_search_{i}"):
-                        del filtered_data[i]
-                        save_data(filtered_data)
+                        delete_order(i)
                         st.experimental_rerun()
         else:
             st.write("No entries found with your search criteria.")
 
-elif selected == "Dashboard":
+elif selected == "Dashboard" and check_permission('Dashboard'):
     # وظيفة لرسم دائرة مع خلفية بيضاء
     def draw_circle(value, label, color="#1E90FF", max_value=100):
         percentage = min(100, max(0, (value / max_value) * 100))
@@ -205,7 +268,7 @@ elif selected == "Dashboard":
         pending_orders = sum(1 for item in data if item.get('status') == 'Pending')
         completed_orders = sum(1 for item in data if item.get('status') == 'Completed')
         delivered_orders = sum(1 for item in data if item.get('status') == 'Delivered')
-        total_revenue = sum(item.get('number', 0) for item in data if item.get('status') == 'Delivered')
+        total_revenue = sum(float(item.get('number', 0)) for item in data if item.get('status') == 'Delivered')
         orders_by_city = {}
         revenue_by_city = {}
         orders_by_date = {}
@@ -220,16 +283,15 @@ elif selected == "Dashboard":
                 date = 'Unknown'
             
             orders_by_city[city] = orders_by_city.get(city, 0) + 1
-            revenue_by_city[city] = revenue_by_city.get(city, 0) + item.get('number', 0)
+            revenue_by_city[city] = revenue_by_city.get(city, 0) + float(item.get('number', 0) or 0)
             if date != 'Unknown':
                 orders_by_date[date] = orders_by_date.get(date, 0) + 1
                 if item.get('status') in ['Pending', 'Completed', 'Delivered']:
-                    revenue_by_date[date] = revenue_by_date.get(date, 0) + (item['number'] if item['status'] == 'Delivered' else 0)
+                    revenue_by_date[date] = revenue_by_date.get(date, 0) + (float(item['number']) if item['status'] == 'Delivered' else 0)
 
         return total_orders, pending_orders, completed_orders, delivered_orders, total_revenue, orders_by_city, revenue_by_city, orders_by_date, revenue_by_date
 
-    # تحميل وتحليل البيانات
-    data = load_data()
+    data = st.session_state.all_data
     total_orders, pending_orders, completed_orders, delivered_orders, total_revenue, orders_by_city, revenue_by_city, orders_by_date, revenue_by_date = analyze_data(data)
 
     # تحويل البيانات إلى إطار بيانات بانداس
@@ -240,9 +302,6 @@ elif selected == "Dashboard":
     df_revenue = pd.DataFrame(list(revenue_by_date.items()), columns=['Date', 'Revenue'])
     df_revenue['Date'] = pd.to_datetime(df_revenue['Date'], format='%Y-%m-%d')
     df_revenue = df_revenue.sort_values('Date')
-
-    # واجهة المستخدم
-    st.title("Dashboard: Order Analysis")
 
     # تحديد القيم القصوى لكل دائرة
     max_total_orders = 1500
@@ -292,3 +351,117 @@ elif selected == "Dashboard":
                             <p style="font-size: 20px; color: #1E90FF;"><strong>{formatted_revenue} دينار عراقي</strong></p>
                         </div>
                         """, unsafe_allow_html=True)
+
+if selected == "Settings" and check_permission('Settings'):
+    
+    st.markdown("""
+        <style>
+            .sidebar-content {
+                animation: slide-in-left 0.5s ease-out;
+            }
+            @keyframes slide-in-left {
+                from {
+                    transform: translateX(-100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
+    with st.sidebar:
+        setting_menu = option_menu(
+            menu_title="Settings Menu",
+            options=["User Management", "Permissions", "Connected Devices", "Change Password", "Delete User"],
+            icons=["person", "key", "devices", "lock", "trash"],
+            menu_icon="gear",
+            default_index=0,
+            orientation="vertical",
+            styles={
+                "nav-link": {
+                    "padding": "0.5rem 1rem",
+                    "margin": "0.5rem 0",
+                    "border-radius": "8px",
+                    "transition": "all 0.3s ease",
+                },
+                "nav-link-selected": {
+                    "background-color": "#FF4B4B",
+                    "color": "white"
+                }
+            }
+        )
+
+    st.markdown('<div class="sidebar-content">', unsafe_allow_html=True)
+
+    if setting_menu == "User Management":
+        new_user = st.text_input("New User Name")
+        new_user_code = st.text_input("New User Access Code", type="password")
+        is_manager = st.checkbox("Is Manager")
+        user_permissions = st.multiselect("Select User Permissions", ["Home", "Orders", "Search", "Dashboard", "Settings"], default=["Home", "Orders", "Search", "Dashboard"])
+        if st.button("Add User"):
+            if new_user and new_user_code:
+                employees[new_user] = {'code': new_user_code, 'is_manager': is_manager, 'devices': [], 'permissions': {perm: True for perm in user_permissions}}
+                save_employees(employees)
+                st.success(f"User {new_user} added successfully!")
+            else:
+                st.error("Please enter a username and access code.")
+
+    elif setting_menu == "Permissions":
+        st.subheader("Permissions")
+        selected_user = st.selectbox("Select User", list(employees.keys()))
+        if selected_user:
+            user_permissions = st.multiselect("Select Permissions", ["Home", "Orders", "Search", "Dashboard", "Settings"], default=list(employees[selected_user].get('permissions', {}).keys()))
+            if st.button("Update Permissions"):
+                employees[selected_user]['permissions'] = {perm: True for perm in user_permissions}
+                save_employees(employees)
+                st.success(f"Permissions updated for {selected_user}")
+
+    elif setting_menu == "Connected Devices":
+        st.subheader("Connected Devices")
+        for employee, details in employees.items():
+            if 'devices' in details:
+                st.write(f"**{employee}** is connected from:")
+                for device in details['devices']:
+                    st.write(f"- {device}")
+                if st.button(f"Logout {employee}", key=f"logout_{employee}"):
+                    details['devices'] = []
+                    save_employees(employees)
+                    st.success(f"{employee} has been logged out from all devices.")
+                    if employee == st.session_state.current_user:
+                        st.session_state.is_authenticated = False
+                        st.session_state.current_user = None
+                        st.experimental_rerun()
+
+    elif setting_menu == "Change Password":
+        st.subheader("Change Password")
+        current_password = st.text_input("Current Password", type="password")
+        new_password = st.text_input("New Password", type="password")
+        confirm_password = st.text_input("Confirm New Password", type="password")
+        if st.button("Change Password"):
+            if employees[st.session_state.current_user]['code'] == current_password:
+                if new_password == confirm_password:
+                    employees[st.session_state.current_user]['code'] = new_password
+                    save_employees(employees)
+                    st.success("Password changed successfully!")
+                else:
+                    st.error("New passwords do not match.")
+            else:
+                st.error("Current password is incorrect.")
+
+    elif setting_menu == "Delete User":
+        st.subheader("Delete User")
+        delete_user = st.selectbox("Select User to Delete", list(employees.keys()))
+        if st.button("Delete User"):
+            if delete_user:
+                del employees[delete_user]
+                save_employees(employees)
+                st.success(f"User {delete_user} deleted successfully!")
+                if delete_user == st.session_state.current_user:
+                    st.session_state.is_authenticated = False
+                    st.session_state.current_user = None
+                    st.experimental_rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True)
