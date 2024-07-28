@@ -8,18 +8,10 @@ import gspread
 from google.oauth2.service_account import Credentials
 from concurrent.futures import ThreadPoolExecutor
 
-def load_css(file_name):
-    with open(file_name) as f:
-        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-
-# استدعاء الدالة لتحميل ملف CSS
-load_css("custom.css")
-
-
-# إعداد Google Sheets API
+# إعداد Google Sheets API باستخدام Streamlit Secrets
 def get_gspread_client():
     scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-    creds = Credentials.from_service_account_file('C:\\Users\\Windows10\\Desktop\\app\\diesel-ring-430422-p8-2b09b298810f.json', scopes=scope)
+    creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
     client = gspread.authorize(creds)
     return client
 
@@ -62,7 +54,7 @@ def delete_order(index):
 
 # تنسيق الطلبات باستخدام HTML و CSS
 def format_order(data, index):
-    formatted_number = "{:,.0f}".format(float(data.get('number', 0) or 0)).replace(',', '.')
+    formatted_number = "{:,.0f}".format(float(data.get('number', 0))).replace(',', '.')
     background_color = "#d4edda" if data.get('status') == 'Completed' else "#f8d7da"
     if data.get('status') == 'Delivered':
         background_color = "#cce5ff"
@@ -84,7 +76,7 @@ def format_order(data, index):
     """
 
 def format_order_details(data):
-    formatted_number = "{:,.0f}".format(float(data.get('number', 0) or 0)).replace(',', '.')
+    formatted_number = "{:,.0f}".format(float(data.get('number', 0))).replace(',', '.')
     return f"""
     <div style="border-radius: 8px; padding: 16px; background-color: #fff; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
         <p><strong>Name:</strong> {data.get('hello', 'N/A')}</p>
@@ -178,6 +170,7 @@ if "all_data" not in st.session_state:
     st.session_state.all_data = load_data()
 
 if selected == "Orders" and check_permission('Orders'):
+    st.write("Loading orders...")
     all_data = st.session_state.all_data
 
     for i, data in enumerate(all_data):
@@ -200,6 +193,7 @@ if selected == "Orders" and check_permission('Orders'):
             st.write("---")
 
 elif selected == "Search" and check_permission('Search'):
+    st.title("Search")
     if "search_query" not in st.session_state:
         st.session_state.search_query = ""
     search_query = st.text_input("Search by phone number or name", key="search_input")
@@ -283,7 +277,7 @@ elif selected == "Dashboard" and check_permission('Dashboard'):
                 date = 'Unknown'
             
             orders_by_city[city] = orders_by_city.get(city, 0) + 1
-            revenue_by_city[city] = revenue_by_city.get(city, 0) + float(item.get('number', 0) or 0)
+            revenue_by_city[city] = revenue_by_city.get(city, 0) + float(item.get('number', 0))
             if date != 'Unknown':
                 orders_by_date[date] = orders_by_date.get(date, 0) + 1
                 if item.get('status') in ['Pending', 'Completed', 'Delivered']:
@@ -302,6 +296,9 @@ elif selected == "Dashboard" and check_permission('Dashboard'):
     df_revenue = pd.DataFrame(list(revenue_by_date.items()), columns=['Date', 'Revenue'])
     df_revenue['Date'] = pd.to_datetime(df_revenue['Date'], format='%Y-%m-%d')
     df_revenue = df_revenue.sort_values('Date')
+
+    # واجهة المستخدم
+    st.title("Dashboard: Order Analysis")
 
     # تحديد القيم القصوى لكل دائرة
     max_total_orders = 1500
@@ -353,6 +350,7 @@ elif selected == "Dashboard" and check_permission('Dashboard'):
                         """, unsafe_allow_html=True)
 
 if selected == "Settings" and check_permission('Settings'):
+    st.title("Settings")
     
     st.markdown("""
         <style>
@@ -397,6 +395,7 @@ if selected == "Settings" and check_permission('Settings'):
     st.markdown('<div class="sidebar-content">', unsafe_allow_html=True)
 
     if setting_menu == "User Management":
+        st.subheader("User Management")
         new_user = st.text_input("New User Name")
         new_user_code = st.text_input("New User Access Code", type="password")
         is_manager = st.checkbox("Is Manager")
